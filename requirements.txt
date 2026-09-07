@@ -1,6 +1,6 @@
 streamlit==1.30.0
 pandas==2.2.2
-vcfpy==0.13.6
+vcfpy
 reportlab==4.1.0
 pytest==8.2.1
 python-dateutil==2.8.2
