@@ -1,0 +1,24 @@
+name: Keep Streamlit app awake
+
+# Streamlit Community Cloud sleeps an app after 12 hours with zero traffic.
+# A plain HTTP ping does NOT prevent this (a sleeping app returns a fake
+# 200 OK static page without running your code). What does work: an empty
+# commit resets the inactivity countdown. This runs every 10 hours, safely
+# inside that window, at no cost.
+
+on:
+  schedule:
+    - cron: "0 */10 * * *"
+  workflow_dispatch: {}   # lets you trigger it manually from the Actions tab too
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make an empty commit
+        run: |
+          git config user.name "keep-alive-bot"
+          git config user.email "actions@github.com"
+          git commit --allow-empty -m "chore: keep-alive ping"
+          git push
