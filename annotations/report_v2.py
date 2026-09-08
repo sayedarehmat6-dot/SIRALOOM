@@ -6,12 +6,28 @@ New report generator, structured against the published ESHG 2022
 (Deans et al., Eur J Hum Genet 30:1011-1016), which explicitly aligns with
 ACMG 2015 and UK-ACGS practice.
 
+Does NOT touch annotations/report.py — this is a separate, new file.
+
+HONEST POSITIONING, built into the template itself, not just prose around
 it: this pipeline produces a REANALYSIS CANDIDATE report — a supplementary
 flag for physician review — not the certified diagnostic report of record.
 That framing is printed on every page, not just mentioned in passing,
 because burying it defeats the point of stating it honestly.
 
- 
+Deliberate differences from the old annotations/report.py:
+  - No pie chart / bar chart. The ESHG standard does not include any
+    chart in a single-patient report; those belong in an internal
+    QC/research summary across many samples, not here.
+  - No raw JSON in the visible report. Evidence detail is available in
+    an optional technical appendix, in plain key: value lines, not a
+    JSON blob.
+  - Benign / Likely benign variants are excluded from the main body,
+    per the standard's explicit recommendation.
+  - A single bold, boxed headline conclusion appears before any table.
+  - Administrative, patient-identification, sample-identification, and
+    "restatement of clinical question" blocks are present as fields —
+    pass what you have; the template does not require every field, but
+    surfaces which are missing rather than silently omitting them.
 """
 
 from __future__ import annotations
@@ -41,6 +57,7 @@ def generate_clinical_report(
     # --- Administrative ---
     lab_name: str,
     lab_contact: str,
+    report_service_label: str = "Reanalysis Candidate",
     report_authorized_date: Optional[str] = None,
     referring_physician: Optional[str] = None,
     referring_physician_address: Optional[str] = None,
@@ -58,7 +75,7 @@ def generate_clinical_report(
     sample_received_date: Optional[str] = None,
     # --- Restatement of clinical question ---
     clinical_indication: Optional[str] = None,
-    test_type: str = "Reanalysis of previously unsolved case",
+    test_type: Optional[str] = None,
     referral_reason: Optional[str] = None,
     # --- Methods / provenance ---
     genome_build: str = "GRCh38",
@@ -85,7 +102,7 @@ def generate_clinical_report(
 
     # ---------------- Positioning banner — every page starts with this ----------------
     elements.append(Table(
-        [[_p("<b>REANALYSIS CANDIDATE REPORT — SUPPLEMENTARY FINDING</b><br/>"
+        [[_p(f"<b>{report_service_label.upper()} REPORT — SUPPLEMENTARY FINDING</b><br/>"
              "This is not a diagnostic report of record. It is intended to flag "
              "candidate findings for review by qualified laboratory personnel "
              "alongside the laboratory's own certified diagnostic pipeline.",
@@ -128,7 +145,7 @@ def generate_clinical_report(
     # ---------------- Restatement of clinical question ----------------
     question_html = (
         f"<b>Clinical indication:</b> {_missing_field_note(clinical_indication, 'clinical indication')}<br/>"
-        f"<b>Test type:</b> {test_type}<br/>"
+        f"<b>Test type:</b> {test_type or report_service_label}<br/>"
         f"<b>Referral reason:</b> {_missing_field_note(referral_reason, 'referral reason')}"
     )
     elements.append(_p(question_html, small))
