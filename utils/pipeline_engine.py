@@ -36,23 +36,31 @@ def get_genebe_credentials():
 def load_raw_vcf(file_obj):
     import io
     import pandas as pd
+    from utils.validate_normalize import detect_reference_build, trim_parsimonious
+
     rows = []
+    header_lines = []
     text = io.TextIOWrapper(file_obj, encoding="utf-8")
     for line in text:
-        if line.startswith("#"):
+        if line.startswith("##"):
+            header_lines.append(line.strip())
+            continue
+        if line.startswith("#CHROM"):
             continue
         parts = line.strip().split("\t")
         if len(parts) < 5:
             continue
         chrom, pos, _id, ref, alt_field = parts[:5]
         for alt in alt_field.split(","):
+            norm_pos, norm_ref, norm_alt = trim_parsimonious(int(pos), ref, alt)
             rows.append({
                 "CHROM": chrom.replace("chr", ""),
-                "POS": int(pos),
-                "REF": ref,
-                "ALT": alt,
+                "POS": norm_pos,
+                "REF": norm_ref,
+                "ALT": norm_alt,
             })
-    return pd.DataFrame(rows)
+    build_info = detect_reference_build(header_lines)
+    return pd.DataFrame(rows), build_info
 
 
 def annotate_and_classify(variants_df):
