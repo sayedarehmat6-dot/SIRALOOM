@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 from utils.pipeline_engine import load_raw_vcf, annotate_and_classify
 
-st.set_page_config(page_title="Annotation Service — Siraloom", page_icon="")
-st.title("Annotation Service")
+st.set_page_config(page_title="Annotation Service — Siraloom", page_icon="🧪")
+st.title("🧪 Annotation Service")
 st.caption(
     "Upload a VCF for variant annotation and ACMG-AMP 2015 classification. "
     "This demonstration uses a public annotation API for fast evaluation — "
@@ -18,11 +18,14 @@ if uploaded_vcf is None:
 
 with st.spinner("Annotating and classifying..."):
     try:
-        variants_df = load_raw_vcf(uploaded_vcf)
+        variants_df, build_info = load_raw_vcf(uploaded_vcf)
         result_df = annotate_and_classify(variants_df)
     except Exception as e:
         st.error(f"Something went wrong processing this file: {e}")
         st.stop()
+
+if build_info.get("warning"):
+    st.warning(f"⚠️ {build_info['warning']}")
 
 # --- filter to clinically relevant results only (benign excluded from main view) ---
 reportable_df = result_df[
