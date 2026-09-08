@@ -2,8 +2,8 @@ import streamlit as st
 import json
 from utils.pipeline_engine import load_raw_vcf, annotate_and_classify
 
-st.set_page_config(page_title="Reanalysis Service — Siraloom", page_icon="")
-st.title("Reanalysis Service")
+st.set_page_config(page_title="Reanalysis Service — Siraloom", page_icon="🔁")
+st.title("🔁 Reanalysis Service")
 st.caption(
     "Upload a previously unsolved case for reanalysis against current "
     "reference evidence. This demonstration uses a public annotation API "
@@ -34,11 +34,14 @@ if prior_findings_file is not None:
 
 with st.spinner("Reanalyzing against current reference evidence..."):
     try:
-        variants_df = load_raw_vcf(uploaded_vcf)
+        variants_df, build_info = load_raw_vcf(uploaded_vcf)
         result_df = annotate_and_classify(variants_df)
     except Exception as e:
         st.error(f"Something went wrong processing this file: {e}")
         st.stop()
+
+if build_info.get("warning"):
+    st.warning(f"⚠️ {build_info['warning']}")
 
 reportable_df = result_df[
     ~result_df["ACMG"].astype(str).str.contains("benign", case=False, na=False)
@@ -48,7 +51,7 @@ new_findings_df = reportable_df[~reportable_df["GENE"].isin(prior_genes)]
 st.success(f"Reanalysis complete — {len(reportable_df)} clinically relevant candidate(s).")
 
 if not new_findings_df.empty:
-    st.markdown("### New candidate finding(s) not in prior report")
+    st.markdown("### 🆕 New candidate finding(s) not in prior report")
     st.dataframe(
         new_findings_df[["GENE", "HGVSc", "HGVSp", "ACMG", "ClinVar"]],
         use_container_width=True,
