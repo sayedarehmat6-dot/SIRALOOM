@@ -14,7 +14,7 @@ st.caption(
 
 col1, col2 = st.columns(2)
 with col1:
-    uploaded_vcf = st.file_uploader("Upload case VCF", type=["vcf"])
+    uploaded_vcf = st.file_uploader("Upload case VCF", type=["vcf", "vcf.gz", "gz"])
 with col2:
     prior_findings_file = st.file_uploader(
         "Optional: prior report findings (JSON list of gene names already reported)",
