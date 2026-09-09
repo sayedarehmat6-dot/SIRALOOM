@@ -10,7 +10,7 @@ st.caption(
     "a production deployment runs on your own hosted infrastructure."
 )
 
-uploaded_vcf = st.file_uploader("Upload a VCF file", type=["vcf"])
+uploaded_vcf = st.file_uploader("Upload a VCF file", type=["vcf", "vcf.gz", "gz"])
 
 if uploaded_vcf is None:
     st.info("Upload a VCF to begin.")
