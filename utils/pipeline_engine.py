@@ -33,14 +33,20 @@ def get_genebe_credentials():
         return None, None
 
 
-def load_raw_vcf(file_obj):
+def load_raw_vcf(file_obj, apply_normalization: bool = False):
     import io
+    import gzip
     import pandas as pd
     from utils.validate_normalize import detect_reference_build, trim_parsimonious
 
     rows = []
     header_lines = []
-    text = io.TextIOWrapper(file_obj, encoding="utf-8")
+
+    raw_bytes = file_obj.read()
+    if raw_bytes[:2] == b"\x1f\x8b":  # gzip magic bytes — handles .vcf.gz uploads
+        raw_bytes = gzip.decompress(raw_bytes)
+    text = io.TextIOWrapper(io.BytesIO(raw_bytes), encoding="utf-8")
+
     for line in text:
         if line.startswith("##"):
             header_lines.append(line.strip())
@@ -52,7 +58,10 @@ def load_raw_vcf(file_obj):
             continue
         chrom, pos, _id, ref, alt_field = parts[:5]
         for alt in alt_field.split(","):
-            norm_pos, norm_ref, norm_alt = trim_parsimonious(int(pos), ref, alt)
+            if apply_normalization:
+                norm_pos, norm_ref, norm_alt = trim_parsimonious(int(pos), ref, alt)
+            else:
+                norm_pos, norm_ref, norm_alt = int(pos), ref, alt
             rows.append({
                 "CHROM": chrom.replace("chr", ""),
                 "POS": norm_pos,
